@@ -7,8 +7,9 @@ import CertificateDetails from "../components/DetailsForm";
 import Signatories from "../components/SignatoriesForm";
 import ExcelUploader from "../components/ExcelUploader";
 import DownloadLinks from "../components/DownloadLinks";
+import Sidebar from "../components/Sidebar";
 
-function CertificateGenerator(){
+function CertificateGenerator() {
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [selectedTemplate, setSelectedTemplate] = useState("ojt");
@@ -16,38 +17,33 @@ function CertificateGenerator(){
   const [previewLoading, setPreviewLoading] = useState(false);
   const [generatedFiles, setGeneratedFiles] = useState([]);
 
-  const handleExcelParsed = async(data) => {
+  const handleExcelParsed = async (data) => {
     setExcelData(data);
-
-    console.log('Data to send:', data);
-
-     try {
-      const response = await fetch('http://localhost:5000/upload/excel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+    try {
+      const response = await fetch("http://localhost:5000/upload/excel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rows: data }),
       });
-      if (!response.ok) throw new Error('Upload failed');
+      if (!response.ok) throw new Error("Upload failed");
       const result = await response.json();
-      console.log('Upload success:', result);
+      console.log("Upload success:", result);
     } catch (error) {
-      console.error('Error uploading excel data:', error);
+      console.error("Error uploading excel data:", error);
     }
-
   };
 
   const detectedColumns = excelData.length > 0 ? Object.keys(excelData[0]) : [];
 
-  // Generate certificates
   const handleGenerate = async () => {
     if (excelData.length === 0) {
-      alert('No data loaded. Please upload an Excel file first.');
+      alert("No data loaded. Please upload an Excel file first.");
       return;
     }
     try {
-      const response = await fetch('http://localhost:5000/generate/certificates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:5000/generate/certificates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           template: selectedTemplate,
           rows: excelData,
@@ -55,97 +51,111 @@ function CertificateGenerator(){
       });
 
       const result = await response.json();
-      console.log("Generated files:", result.files);
-      // Append new generated files to existing links
-      setGeneratedFiles(prev => [...prev, ...(result.files || [])]);
-      // Download links section will appear; no auto-download
+      setGeneratedFiles((prev) => [...prev, ...(result.files || [])]);
       setPreviewLoading(false);
-
     } catch (err) {
       console.error("Error generating certificates:", err);
     }
   };
 
-  // Preview handler
   const handlePreview = async () => {
-    console.log('Preview clicked, excelData:', excelData);
     if (excelData.length === 0) {
-      alert('No data loaded. Please upload an Excel file first.');
+      alert("No data loaded. Please upload an Excel file first.");
       return;
     }
     try {
-      const response = await fetch('http://localhost:5000/generate/preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:5000/generate/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ template: selectedTemplate, rows: excelData }),
       });
       const html = await response.text();
-      const previewWindow = window.open('', '_blank');
+      const previewWindow = window.open("", "_blank");
       previewWindow.document.write(html);
     } catch (err) {
-      console.error('Error previewing certificate:', err);
+      console.error("Error previewing certificate:", err);
     }
   };
 
   return (
-    <>
-      {/* Logout button */}
-      <div className="flex justify-end p-2">
-        <button
-          className="rounded-md bg-red-600 text-white px-3 py-1 hover:bg-red-700"
-          onClick={() => {
-            logout();
-            navigate('/login');
-          }}
-        >Logout</button>
-      </div>
-      <div className="container rounded-md">
-        <h3 className="section-header">Upload Data File</h3>
-        <ExcelUploader onDataParsed={handleExcelParsed} />
+    <div className="flex min-h-screen bg-[#1f1f1f] text-white">
+      {/* Sidebar on the left */}
+      <Sidebar />
 
-        {detectedColumns.length > 0 && (
-          <div className="mt-4 bg-zinc-700 p-4 rounded-md text-white">
-            <h4 className="font-semibold mb-2">Detected Columns:</h4>
-            <div className="flex flex-wrap gap-2">
-              {detectedColumns.map((col, idx) => (
-                <div
-                  key={idx}
-                  className="bg-violet-600 text-white text-sm px-3 py-1 rounded-full shadow-sm max-w-max"
-                >
-                  {col}
-                </div>
-              ))}
+      {/* Main Content on the right */}
+      <div className="flex-1 p-6 overflow-y-auto">
+        {/* Logout */}
+        <div className="flex justify-end mb-4">
+          <button
+            className="rounded-md bg-red-600 text-white px-3 py-1 hover:bg-red-700"
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+          >
+            Logout
+          </button>
+        </div>
+
+        {/* Excel Upload */}
+        <div className="container rounded-md">
+          <h3 className="section-header">Upload Data File</h3>
+          <ExcelUploader onDataParsed={handleExcelParsed} />
+
+          {detectedColumns.length > 0 && (
+            <div className="mt-4 bg-zinc-700 p-4 rounded-md text-white">
+              <h4 className="font-semibold mb-2">Detected Columns:</h4>
+              <div className="flex flex-wrap gap-2">
+                {detectedColumns.map((col, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-violet-600 text-white text-sm px-3 py-1 rounded-full shadow-sm max-w-max"
+                  >
+                    {col}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <div className="container rounded-md">
-        <h3 className="section-header">Select a Template</h3>
-        <TemplateSelection selected={selectedTemplate} onChange={setSelectedTemplate} />
-      </div>
+        {/* Template Selection */}
+        <div className="container rounded-md">
+          <h3 className="section-header">Select a Template</h3>
+          <TemplateSelection selected={selectedTemplate} onChange={setSelectedTemplate} />
+        </div>
 
-      {/* Only show these sections when custom template is selected */}
-      {selectedTemplate === "custom" && (
-        <>
+        {/* Custom Template Details */}
+        {selectedTemplate === "custom" && (
           <div className="container rounded-md">
             <h3 className="section-header">Certificate Customization</h3>
             <CertificateDetails />
             <Signatories />
           </div>
-        </>
-      )}
+        )}
 
-      <div className="container rounded-md w-full flex gap-2">
-        <button className="rounded-md bg-[#3737ff7e] p-2" onClick={handlePreview} disabled={previewLoading}>
-          {previewLoading ? 'Loading...' : 'Preview'}
-        </button>
-        <button className="rounded-md bg-[#a361ef] p-2" id="generate-btn" onClick={handleGenerate}>Generate Certificates</button>
+        {/* Generate Buttons */}
+        <div className="container rounded-md w-full flex gap-2">
+          <button
+            className="rounded-md bg-[#3737ff7e] p-2"
+            onClick={handlePreview}
+            disabled={previewLoading}
+          >
+            {previewLoading ? "Loading..." : "Preview"}
+          </button>
+          <button
+            className="rounded-md bg-[#a361ef] p-2"
+            id="generate-btn"
+            onClick={handleGenerate}
+          >
+            Generate Certificates
+          </button>
+        </div>
+
+        {/* Download Links */}
+        {generatedFiles.length > 0 && <DownloadLinks files={generatedFiles} />}
       </div>
-
-      {/* Download component shown after generation */}
-      {generatedFiles.length > 0 && <DownloadLinks files={generatedFiles} />}
-    </>
+    </div>
   );
 }
 
