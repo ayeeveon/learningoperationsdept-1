@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 function ScrollArrow({ direction = "right", onClick, visible }) {
   const [hover, setHover] = useState(false);
@@ -98,14 +99,20 @@ function HomePage() {
     ref.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
-  
+  const navigate = useNavigate();
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    // Add any other logout logic here if needed
+  };
+
   const containerStyle = {
     backgroundColor: "#696b6c",
     color: "white",
     margin: "2rem auto",
     padding: "1rem",
-    width: "calc(100% - 256px)", 
-    marginLeft: "256px",       
+    width: "calc(100% - 256px)",
+    marginLeft: "256px",
     boxShadow: "0 5px 7px #0000004d",
   };
 
@@ -153,83 +160,100 @@ function HomePage() {
   };
 
   return (
-    <>
+    <div className="flex min-h-screen bg-[#1f1f1f] text-white">
+      {/* Sidebar on the left */}
       <Sidebar />
 
-      <div style={containerStyle}>
-        <h2 style={sectionTitleStyle}>Recently Made Certificates</h2>
-        <div
-          style={scrollWrapperStyle}
-          onMouseEnter={() => setHoverCert(true)}
-          onMouseLeave={() => setHoverCert(false)}
-        >
-          <ScrollArrow
-            direction="left"
-            onClick={() => scroll(certScrollRef, -1)}
-            visible={hoverCert && showCertLeft}
-          />
-
-          <div ref={certScrollRef} style={scrollContainerStyle} className="scroll-container">
-            {certificates.map((cert, i) => (
-              <div key={i} style={itemStyle} className="scroll-item">
-                {cert}
-              </div>
-            ))}
-          </div>
-
-          <ScrollArrow
-            direction="right"
-            onClick={() => scroll(certScrollRef, 1)}
-            visible={hoverCert && showCertRight}
-          />
+      {/* Main Content on the right */}
+      <div className="flex-1 p-6 overflow-y-auto">
+        {/* Logout */}
+        <div className="flex justify-end mb-4">
+          <button
+            className="rounded-md bg-red-600 text-white px-3 py-1 hover:bg-red-700"
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+          >
+            Logout
+          </button>
         </div>
-      </div>
 
-      <div style={containerStyle}>
-        <h2 style={sectionTitleStyle}>TESDA Records</h2>
-        <div
-          style={scrollWrapperStyle}
-          onMouseEnter={() => setHoverTesda(true)}
-          onMouseLeave={() => setHoverTesda(false)}
-        >
-          <ScrollArrow
-            direction="left"
-            onClick={() => scroll(tesdaScrollRef, -1)}
-            visible={hoverTesda && showTesdaLeft}
-          />
+        <div style={containerStyle}>
+          <h2 style={sectionTitleStyle}>Recently Made Certificates</h2>
+          <div
+            style={scrollWrapperStyle}
+            onMouseEnter={() => setHoverCert(true)}
+            onMouseLeave={() => setHoverCert(false)}
+          >
+            <ScrollArrow
+              direction="left"
+              onClick={() => scroll(certScrollRef, -1)}
+              visible={hoverCert && showCertLeft}
+            />
 
-          <div ref={tesdaScrollRef} style={scrollContainerStyle} className="scroll-container">
-            {tesdaRecords.map((record, i) => (
-              <div key={i} style={itemStyle} className="scroll-item">
-                {record}
-              </div>
-            ))}
+            <div ref={certScrollRef} style={scrollContainerStyle} className="scroll-container">
+              {certificates.map((cert, i) => (
+                <div key={i} style={itemStyle} className="scroll-item">
+                  {cert}
+                </div>
+              ))}
+            </div>
+
+            <ScrollArrow
+              direction="right"
+              onClick={() => scroll(certScrollRef, 1)}
+              visible={hoverCert && showCertRight}
+            />
           </div>
-
-          <ScrollArrow
-            direction="right"
-            onClick={() => scroll(tesdaScrollRef, 1)}
-            visible={hoverTesda && showTesdaRight}
-          />
         </div>
+
+        <div style={containerStyle}>
+          <h2 style={sectionTitleStyle}>TESDA Records</h2>
+          <div
+            style={scrollWrapperStyle}
+            onMouseEnter={() => setHoverTesda(true)}
+            onMouseLeave={() => setHoverTesda(false)}
+          >
+            <ScrollArrow
+              direction="left"
+              onClick={() => scroll(tesdaScrollRef, -1)}
+              visible={hoverTesda && showTesdaLeft}
+            />
+
+            <div ref={tesdaScrollRef} style={scrollContainerStyle} className="scroll-container">
+              {tesdaRecords.map((record, i) => (
+                <div key={i} style={itemStyle} className="scroll-item">
+                  {record}
+                </div>
+              ))}
+            </div>
+
+            <ScrollArrow
+              direction="right"
+              onClick={() => scroll(tesdaScrollRef, 1)}
+              visible={hoverTesda && showTesdaRight}
+            />
+          </div>
+        </div>
+
+        <style>{`
+          .scroll-container::-webkit-scrollbar {
+            display: none;
+          }
+
+          .scroll-item {
+            transition: transform 0.2s ease, opacity 0.2s ease, height 0.2s ease;
+          }
+
+          .scroll-item:hover {
+            transform: scaleX(1.05);
+            height: 70px;
+            opacity: 1;
+          }
+        `}</style>
       </div>
-
-      <style>{`
-        .scroll-container::-webkit-scrollbar {
-          display: none;
-        }
-
-        .scroll-item {
-          transition: transform 0.2s ease, opacity 0.2s ease, height 0.2s ease;
-        }
-
-        .scroll-item:hover {
-          transform: scaleX(1.05);
-          height: 70px;
-          opacity: 1;
-        }
-      `}</style>
-    </>
+    </div>
   );
 }
 
