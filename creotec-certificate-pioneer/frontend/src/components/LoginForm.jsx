@@ -27,7 +27,7 @@ export default function LoginForm({ isLoading, setIsLoading, onForgotPassword })
       if (result.success) {
         triggerToast('Login successful!', 'success');
         setTimeout(() => {
-          navigate('/generate');
+          navigate('/home');
         }, 1200);
       } else {
         triggerToast(result.message || 'Invalid username or password.', 'error');
