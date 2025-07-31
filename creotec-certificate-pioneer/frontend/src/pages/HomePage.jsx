@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-function ScrollArrow({ direction = "right", onClick }) {
+function ScrollArrow({ direction = "right", onClick, visible }) {
   const [hover, setHover] = useState(false);
 
   const baseStyle = {
@@ -9,29 +10,32 @@ function ScrollArrow({ direction = "right", onClick }) {
     border: "none",
     color: "#a361ef",
     cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: "2rem",
+    fontSize: "2.2rem",
     userSelect: "none",
     padding: "0 0.5rem",
-    margin: "0 0.25rem",
-    transition: "color 0.3s ease, transform 0.2s ease",
+    transition: "color 0.3s ease, transform 0.2s ease, opacity 0.3s ease",
     outline: "none",
+    position: "absolute",
+    top: "50%",
+    transform: hover
+      ? "translateY(-50%) scale(1.3)"
+      : "translateY(-50%) scale(1)",
+    opacity: visible ? (hover ? 1 : 0.7) : 0,
+    zIndex: 10,
+    pointerEvents: visible ? "auto" : "none",
   };
 
-  const hoverStyle = {
-    color: "#d4a1ff",
-    transform: "scale(1.2)",
-  };
+  baseStyle[direction === "left" ? "left" : "right"] = 10;
 
   return (
     <button
       onClick={onClick}
-      style={hover ? { ...baseStyle, ...hoverStyle } : baseStyle}
+      style={baseStyle}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       aria-label={direction === "left" ? "Scroll left" : "Scroll right"}
     >
-      {direction === "left" ? "<" : ">"}
+      {direction === "left" ? <FaChevronLeft /> : <FaChevronRight />}
     </button>
   );
 }
@@ -40,71 +44,86 @@ function HomePage() {
   const certScrollRef = useRef(null);
   const tesdaScrollRef = useRef(null);
 
-  const [showCertArrows, setShowCertArrows] = useState(false);
-  const [showTesdaArrows, setShowTesdaArrows] = useState(false);
+  const [showCertLeft, setShowCertLeft] = useState(false);
+  const [showCertRight, setShowCertRight] = useState(false);
+  const [showTesdaLeft, setShowTesdaLeft] = useState(false);
+  const [showTesdaRight, setShowTesdaRight] = useState(false);
 
-  // Example data arrays - replace with real data or fetch calls
+  const [hoverCert, setHoverCert] = useState(false);
+  const [hoverTesda, setHoverTesda] = useState(false);
+
   const certificates = [
-    "Certificate 1",
-    "Certificate 2",
-    "Certificate 3",
-    "Certificate 4",
-    "Certificate 5",
-    "Certificate 6",
-    "Certificate 7",
+    "Certificate 1", "Certificate 2", "Certificate 3",
+    "Certificate 4", "Certificate 5", "Certificate 6", "Certificate 7",
+    "Certificate 1", "Certificate 2", "Certificate 3",
+    "Certificate 4", "Certificate 5", "Certificate 6",
   ];
 
   const tesdaRecords = [
-    "TESDA Record 1",
-    "TESDA Record 2",
-    "TESDA Record 3",
-    "TESDA Record 4",
-    "TESDA Record 5",
+    "TESDA Record 1", "TESDA Record 2", "TESDA Record 3",
+    "TESDA Record 4", "TESDA Record 5"
   ];
 
-  // Check if scroll is needed for certificates
   useEffect(() => {
     const el = certScrollRef.current;
-    if (el) setShowCertArrows(el.scrollWidth > el.clientWidth);
+    if (!el) return;
+
+    const handleScroll = () => {
+      setShowCertLeft(el.scrollLeft > 0);
+      setShowCertRight(el.scrollLeft + el.clientWidth < el.scrollWidth);
+    };
+
+    handleScroll();
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
   }, [certificates]);
 
-  // Check if scroll is needed for TESDA records
   useEffect(() => {
     const el = tesdaScrollRef.current;
-    if (el) setShowTesdaArrows(el.scrollWidth > el.clientWidth);
+    if (!el) return;
+
+    const handleScroll = () => {
+      setShowTesdaLeft(el.scrollLeft > 0);
+      setShowTesdaRight(el.scrollLeft + el.clientWidth < el.scrollWidth);
+    };
+
+    handleScroll();
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
   }, [tesdaRecords]);
 
   const scroll = (ref, direction) => {
     if (!ref.current) return;
-    const scrollAmount = 200 * direction; // adjust scroll distance here
+    const scrollAmount = 200 * direction;
     ref.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
-  // Styles
+  
   const containerStyle = {
     backgroundColor: "#696b6c",
     color: "white",
     margin: "2rem auto",
     padding: "1rem",
-    width: "calc(100% - 280px)", // subtract sidebar width
-    marginLeft: "280px",         // match sidebar width
-    height: "fit-content",
+    width: "calc(100% - 256px)", 
+    marginLeft: "256px",       
     boxShadow: "0 5px 7px #0000004d",
-    borderRadius: "6px",
+  };
+
+  const scrollWrapperStyle = {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
   };
 
   const scrollContainerStyle = {
     display: "flex",
     overflowX: "auto",
     scrollBehavior: "smooth",
-    scrollbarWidth: "none",  // Firefox
-    msOverflowStyle: "none", // IE 10+
-  };
-
-  const hideScrollbar = {
-    "&::-webkit-scrollbar": {
-      display: "none", // Chrome, Safari, Opera
-    }
+    scrollbarWidth: "none",
+    msOverflowStyle: "none",
+    flexGrow: 1,
+    padding: "0 2rem",
+    margin: "0 1rem",
   };
 
   const itemStyle = {
@@ -114,8 +133,23 @@ function HomePage() {
     padding: "1rem",
     borderRadius: "4px",
     minWidth: "150px",
+    height: "58px",
     textAlign: "center",
     boxShadow: "0 3px 5px #00000066",
+    opacity: 0.85,
+    transition: "transform 0.2s ease, opacity 0.2s ease",
+    cursor: "pointer",
+  };
+
+  const sectionTitleStyle = {
+    fontSize: "1.8rem",
+    fontWeight: "700",
+    marginBottom: "1rem",
+    color: "#f3eaff",
+    textShadow: "1px 1px 3px rgba(0, 0, 0, 0.5)",
+    letterSpacing: "0.5px",
+    borderBottom: "2px solid #a361ef",
+    paddingBottom: "0.5rem",
   };
 
   return (
@@ -123,54 +157,78 @@ function HomePage() {
       <Sidebar />
 
       <div style={containerStyle}>
-        <h2>Recently Made Certificates</h2>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          {showCertArrows && (
-            <ScrollArrow direction="left" onClick={() => scroll(certScrollRef, -1)} />
-          )}
+        <h2 style={sectionTitleStyle}>Recently Made Certificates</h2>
+        <div
+          style={scrollWrapperStyle}
+          onMouseEnter={() => setHoverCert(true)}
+          onMouseLeave={() => setHoverCert(false)}
+        >
+          <ScrollArrow
+            direction="left"
+            onClick={() => scroll(certScrollRef, -1)}
+            visible={hoverCert && showCertLeft}
+          />
 
-          <div
-            ref={certScrollRef}
-            style={{ ...scrollContainerStyle, ...hideScrollbar, flexGrow: 1 }}
-            className="scroll-container"
-          >
+          <div ref={certScrollRef} style={scrollContainerStyle} className="scroll-container">
             {certificates.map((cert, i) => (
-              <div key={i} style={itemStyle}>
+              <div key={i} style={itemStyle} className="scroll-item">
                 {cert}
               </div>
             ))}
           </div>
 
-          {showCertArrows && (
-            <ScrollArrow direction="right" onClick={() => scroll(certScrollRef, 1)} />
-          )}
+          <ScrollArrow
+            direction="right"
+            onClick={() => scroll(certScrollRef, 1)}
+            visible={hoverCert && showCertRight}
+          />
         </div>
       </div>
 
       <div style={containerStyle}>
-        <h2>TESDA Records</h2>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          {showTesdaArrows && (
-            <ScrollArrow direction="left" onClick={() => scroll(tesdaScrollRef, -1)} />
-          )}
+        <h2 style={sectionTitleStyle}>TESDA Records</h2>
+        <div
+          style={scrollWrapperStyle}
+          onMouseEnter={() => setHoverTesda(true)}
+          onMouseLeave={() => setHoverTesda(false)}
+        >
+          <ScrollArrow
+            direction="left"
+            onClick={() => scroll(tesdaScrollRef, -1)}
+            visible={hoverTesda && showTesdaLeft}
+          />
 
-          <div
-            ref={tesdaScrollRef}
-            style={{ ...scrollContainerStyle, ...hideScrollbar, flexGrow: 1 }}
-            className="scroll-container"
-          >
+          <div ref={tesdaScrollRef} style={scrollContainerStyle} className="scroll-container">
             {tesdaRecords.map((record, i) => (
-              <div key={i} style={itemStyle}>
+              <div key={i} style={itemStyle} className="scroll-item">
                 {record}
               </div>
             ))}
           </div>
 
-          {showTesdaArrows && (
-            <ScrollArrow direction="right" onClick={() => scroll(tesdaScrollRef, 1)} />
-          )}
+          <ScrollArrow
+            direction="right"
+            onClick={() => scroll(tesdaScrollRef, 1)}
+            visible={hoverTesda && showTesdaRight}
+          />
         </div>
       </div>
+
+      <style>{`
+        .scroll-container::-webkit-scrollbar {
+          display: none;
+        }
+
+        .scroll-item {
+          transition: transform 0.2s ease, opacity 0.2s ease, height 0.2s ease;
+        }
+
+        .scroll-item:hover {
+          transform: scaleX(1.05);
+          height: 70px;
+          opacity: 1;
+        }
+      `}</style>
     </>
   );
 }

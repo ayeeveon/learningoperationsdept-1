@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 
-import TemplateSelection from "../components/TemplateSelection";
+import TemplateSelection from "../components/TESDASelection";
 import CertificateDetails from "../components/DetailsForm";
 import Signatories from "../components/SignatoriesForm";
 import ExcelUploader from "../components/ExcelUploader";
@@ -12,7 +12,7 @@ import Sidebar from "../components/Sidebar";
 function TESDAPage() {
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const [selectedTemplate, setSelectedTemplate] = useState("ojt");
+  const [selectedTemplate, setSelectedTemplate] = useState("tesda");
   const [excelData, setExcelData] = useState([]);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [generatedFiles, setGeneratedFiles] = useState([]);
@@ -103,7 +103,7 @@ function TESDAPage() {
           <ExcelUploader onDataParsed={handleExcelParsed} />
 
           {detectedColumns.length > 0 && (
-            <div className="mt-4 bg-zinc-700 p-4 rounded-md text-white">
+            <div className="mt-4 bg-yellow-700 p-4 rounded-md text-white">
               <h4 className="font-semibold mb-2">Detected Columns:</h4>
               <div className="flex flex-wrap gap-2">
                 {detectedColumns.map((col, idx) => (
@@ -121,7 +121,7 @@ function TESDAPage() {
 
         {/* Template Selection */}
         <div className="container rounded-md">
-          <h3 className="section-header">Selecta</h3>
+          <h3 className="section-header">Select a Template</h3>
           <TemplateSelection selected={selectedTemplate} onChange={setSelectedTemplate} />
         </div>
 
@@ -148,7 +148,7 @@ function TESDAPage() {
             id="generate-btn"
             onClick={handleGenerate}
           >
-            Generate Certificates
+            Generate Certificates  
           </button>
         </div>
 
