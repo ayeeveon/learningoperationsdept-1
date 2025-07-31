@@ -11,12 +11,12 @@
     "preview": "vite preview",
     "install-all": "npm install && python -m venv .venv && .venv\\Scripts\\python.exe -m pip install -r backend\\requirements.txt"
   },
-
   "dependencies": {
     "all": "^0.0.0",
     "dotenv": "^17.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^7.6.3",
     "xlsx": "^0.18.5"
   },
